@@ -126,8 +126,10 @@ interface EndpointArguments {
 }
 export declare class LunchMoney {
     token: string;
+    fetchFunc: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
     constructor(args: {
         token: string;
+        fetchFunc?: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
     });
     get(endpoint: string, args?: EndpointArguments): Promise<any>;
     post(endpoint: string, args?: EndpointArguments): Promise<any>;

@@ -141,8 +141,14 @@ interface EndpointArguments {
 
 export class LunchMoney {
 	token: string;
-	constructor( args: { token: string } ) {
+	fetchFunc: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+	constructor(args: { token: string, fetchFunc?: (input: RequestInfo, init?: RequestInit) => Promise<Response> }) {
 		this.token = args.token;
+		if (args.fetchFunc) {
+			this.fetchFunc = args.fetchFunc;
+		} else {
+			this.fetchFunc = fetch;
+		}
 	}
 
 	async get( endpoint: string, args?: EndpointArguments ) {
@@ -169,9 +175,10 @@ export class LunchMoney {
 				.map( ( [ key, value ] ) => `${ key }=${ value }` )
 				.join( '&' );
 		}
-		const headers = new Headers();
-		headers.set( 'Accept', '*/*' );
-		headers.set( 'Authorization', `Bearer ${ this.token }` );
+		const headers: any = {
+			'Accept': '*/*',
+			'Authorization': `Bearer ${this.token}`
+		};
 		const options: RequestInit = {
 			headers,
 			method,
@@ -179,9 +186,9 @@ export class LunchMoney {
 
 		if ( ( method === 'POST' || method === 'PUT' ) && args ) {
 			options.body = JSON.stringify( args );
-			headers.set( 'Content-Type', 'application/json' );
+			headers['Content-Type'] = 'application/json';
 		}
-		const response = await fetch( url, options );
+		const response = await this.fetchFunc(url, options);
 		if ( response.status > 399 ) {
 			const r = await response.text();
 			throw new Error( r );

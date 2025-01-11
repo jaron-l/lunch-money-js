@@ -25,6 +25,12 @@ var TransactionStatus;
 class LunchMoney {
     constructor(args) {
         this.token = args.token;
+        if (args.fetchFunc) {
+            this.fetchFunc = args.fetchFunc;
+        }
+        else {
+            this.fetchFunc = isomorphic_fetch_1.default;
+        }
     }
     get(endpoint, args) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -55,18 +61,19 @@ class LunchMoney {
                     .map(([key, value]) => `${key}=${value}`)
                     .join('&');
             }
-            const headers = new Headers();
-            headers.set('Accept', '*/*');
-            headers.set('Authorization', `Bearer ${this.token}`);
+            const headers = {
+                'Accept': '*/*',
+                'Authorization': `Bearer ${this.token}`
+            };
             const options = {
                 headers,
                 method,
             };
             if ((method === 'POST' || method === 'PUT') && args) {
                 options.body = JSON.stringify(args);
-                headers.set('Content-Type', 'application/json');
+                headers['Content-Type'] = 'application/json';
             }
-            const response = yield (0, isomorphic_fetch_1.default)(url, options);
+            const response = yield this.fetchFunc(url, options);
             if (response.status > 399) {
                 const r = yield response.text();
                 throw new Error(r);
